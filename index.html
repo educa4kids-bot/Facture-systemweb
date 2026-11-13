@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="appName">نظام إدارة الفواتير الاحترافي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="logo"> <span data-i18n="appName">نظام الفواتير</span></div>
+      <div class="top-controls">
+        <button class="btn-new-invoice" onclick="openNewInvoiceForm()">
+          ➕ <span data-i18n="newInvoiceBtn">فاتورة جديدة</span>
+        </button>
+        <select id="langSelect" class="control-select" onchange="changeLanguage(this.value)">
+          <option value="ar">🇸 العربية</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="en">🇬 English</option>
+        </select>
+        <select id="currencySelect" class="control-select" onchange="changeCurrency(this.value)"></select>
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Theme"></button>
+        <button class="settings-btn" onclick="openSettings()" title="Settings">️</button>
+      </div>
+    </div>
+
+    <!-- Dashboard Hero -->
+    <div class="dashboard-hero">
+      <div class="dashboard-label" data-i18n="dashboardLabel">لوحة التحكم</div>
+      <h1 data-i18n="dashboardTitle">إدارة شاملة لفواتيرك</h1>
+      <p data-i18n="dashboardDesc">أنشئ فواتير أولية، متقدمة، نهائية أو تسوية بتصميم احترافي وشاركها عبر البريد أو الواتساب أو PDF بنقرة واحدة</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label" data-i18n="statInvoices">الفواتير</div><div class="stat-value" id="statInvoices">0</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="statBilled">المبلغ المفوتر</div><div class="stat-value" id="statBilled">0</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="statAdvances">المدفوعات المقدمة</div><div class="stat-value" id="statAdvances">0</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="statProformas">الفواتير الأولية</div><div class="stat-value" id="statProformas">0</div></div>
+      </div>
+    </div>
+
+    <!-- Invoice Types -->
+    <div class="types-grid">
+      <div class="type-card" onclick="openForm('proforma')">
+        <span class="type-badge badge-proforma">PROFORMA</span>
+        <h3 data-i18n="typeProforma">فاتورة أولية</h3>
+        <p data-i18n="typeProformaDesc">عرض سعر / عرض تجاري بدون قيمة محاسبية</p>
+        <div class="type-count"><span id="countProforma">0</span> <span data-i18n="documents">مستند(ات)</span></div>
+      </div>
+      <div class="type-card" onclick="openForm('avance')">
+        <span class="type-badge badge-avance">FACTAVC</span>
+        <h3 data-i18n="typeAvance">فاتورة مقدمة</h3>
+        <p data-i18n="typeAvanceDesc">فاتورة دفعة مقدمة: المبلغ المدفوع مسبقاً من العميل</p>
+        <div class="type-count"><span id="countAvance">0</span> <span data-i18n="documents">مستند(ات)</span></div>
+      </div>
+      <div class="type-card" onclick="openForm('solde')">
+        <span class="type-badge badge-solde">FACTSLD</span>
+        <h3 data-i18n="typeSolde">فاتورة تسوية</h3>
+        <p data-i18n="typeSoldeDesc">المبلغ المتبقي بعد دفع الدفعة المقدمة</p>
+        <div class="type-count"><span id="countSolde">0</span> <span data-i18n="documents">مستند(ات)</span></div>
+      </div>
+      <div class="type-card" onclick="openForm('definitive')">
+        <span class="type-badge badge-definitive">FACTDEF</span>
+        <h3 data-i18n="typeDefinitive">فاتورة نهائية</h3>
+        <p data-i18n="typeDefinitiveDesc">الفاتورة النهائية التي تلخص كامل الخدمة</p>
+        <div class="type-count"><span id="countDefinitive">0</span> <span data-i18n="documents">مستند(ات)</span></div>
+      </div>
+      <div class="type-card" onclick="openForm('simple')">
+        <span class="type-badge badge-simple">FACT</span>
+        <h3 data-i18n="typeSimple">فاتورة</h3>
+        <p data-i18n="typeSimpleDesc">فاتورة بسيطة قياسية</p>
+        <div class="type-count"><span id="countSimple">0</span> <span data-i18n="documents">مستند(ات)</span></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <h2 data-i18n="invoicesList">الفواتير</h2>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterInvoices('all', this)" data-i18n="filterAll">الكل</button>
+        <button class="filter-tab" onclick="filterInvoices('proforma', this)" data-i18n="proforma">أولية</button>
+        <button class="filter-tab" onclick="filterInvoices('avance', this)" data-i18n="avance">مقدمة</button>
+        <button class="filter-tab" onclick="filterInvoices('solde', this)" data-i18n="solde">تسوية</button>
+        <button class="filter-tab" onclick="filterInvoices('definitive', this)" data-i18n="definitive">نهائية</button>
+        <button class="filter-tab" onclick="filterInvoices('simple', this)" data-i18n="simple">بسيطة</button>
+      </div>
+    </div>
+
+    <!-- Invoices List -->
+    <div class="invoices-list" id="invoicesList"></div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal large">
+      <div class="modal-header">
+        <h2>⚙️ <span data-i18n="settingsTitle">إعدادات الشركة</span></h2>
+        <button class="close-btn" onclick="closeModal('settingsModal')">✕</button>
+      </div>
+      <p class="settings-page-subtitle" data-i18n="settingsSubtitle">تظهر هذه المعلومات على جميع الفواتير وملفات PDF المولدة</p>
+
+      <div class="settings-layout">
+        <form class="settings-form-card" id="settingsForm" onsubmit="saveSettings(event)">
+
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="companyIdentity">🏢 هوية الشركة</div>
+            <div class="settings-row">
+              <div><label data-i18n="companyName">الاسم التجاري</label><input type="text" id="s_companyName" oninput="updatePreview()"></div>
+              <div><label>NIF / الرقم الضريبي</label><input type="text" id="s_nif" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div><label>STAT / السجل الإحصائي</label><input type="text" id="s_stat" oninput="updatePreview()"></div>
+              <div><label>RCS / السجل التجاري</label><input type="text" id="s_rcs" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div><label data-i18n="phones">الهواتف</label><input type="text" id="s_phones" oninput="updatePreview()"></div>
+              <div><label data-i18n="email">البريد الإلكتروني</label><input type="email" id="s_email" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div style="grid-column: 1/-1;"><label data-i18n="address">العنوان</label><input type="text" id="s_address" oninput="updatePreview()"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="brandingSettings">🎨 الشعار والعملة والتوقيع</div>
+            <div class="settings-row">
+              <div>
+                <label data-i18n="logo">الشعار (Logo)</label>
+                <label class="logo-upload">
+                  <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(event)">
+                  <div class="upload-text">📷 اختر صورة</div>
+                  <img id="logoPreviewSmall" class="logo-preview-img" style="display:none;">
+                </label>
+                <button type="button" id="removeLogoBtn" class="remove-logo" style="display:none;" onclick="removeLogo()" data-i18n="removeLogo">إزالة الشعار</button>
+              </div>
+              <div>
+                <label data-i18n="currency">العملة الافتراضية</label>
+                <select id="s_currency" onchange="changeCurrency(this.value)"></select>
+                <label style="margin-top:12px;" data-i18n="signatory">الموقع / التوقيع</label>
+                <input type="text" id="s_signatory" oninput="updatePreview()">
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="communicationSettings">💬 الواتساب ووسائل التواصل</div>
+            <div class="settings-row">
+              <div class="social-input"><span class="social-icon"></span><label data-i18n="whatsappNumber">رقم الواتساب</label><input type="text" id="s_whatsapp" oninput="updatePreview()"></div>
+              <div class="social-input"><span class="social-icon">📘</span><label>Facebook</label><input type="url" id="s_facebook" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div class="social-input"><span class="social-icon">📸</span><label>Instagram</label><input type="url" id="s_instagram" oninput="updatePreview()"></div>
+              <div class="social-input"><span class="social-icon">🐦</span><label>Twitter / X</label><input type="url" id="s_twitter" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div class="social-input"><span class="social-icon">💼</span><label>LinkedIn</label><input type="url" id="s_linkedin" oninput="updatePreview()"></div>
+              <div class="social-input"><span class="social-icon">✈️</span><label>Telegram</label><input type="text" id="s_telegram" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div class="social-input"><span class="social-icon">📺</span><label>YouTube</label><input type="url" id="s_youtube" oninput="updatePreview()"></div>
+              <div class="social-input"><span class="social-icon">🌐</span><label>الموقع الإلكتروني</label><input type="url" id="s_website" oninput="updatePreview()"></div>
+            </div>
+            <div class="settings-row">
+              <div class="social-input"><span class="social-icon"></span><label>بريد إضافي</label><input type="email" id="s_email2" oninput="updatePreview()"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title" data-i18n="defaultConditions"> الشروط الافتراضية</div>
+            <div class="settings-row">
+              <div style="grid-column: 1/-1;"><label data-i18n="conditions">شروط الفاتورة</label><textarea id="s_conditions"></textarea></div>
+            </div>
+            <div class="settings-row">
+              <div><label data-i18n="defaultTaxRate">نسبة الضريبة الافتراضية (%)</label><input type="number" id="s_defaultTax" min="0" max="100" step="0.01"></div>
+              <div><label data-i18n="paymentTerms">شروط الدفع</label><input type="text" id="s_paymentTerms"></div>
+            </div>
+            <div class="settings-row">
+              <div style="grid-column: 1/-1;"><label data-i18n="invoiceFooter">تذييل الفاتورة</label><textarea id="s_footer"></textarea></div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-primary" style="background:var(--border); color:var(--text);" onclick="closeModal('settingsModal')" data-i18n="cancel">إلغاء</button>
+            <button type="submit" class="btn-primary">💾 <span data-i18n="save">حفظ الإعدادات</span></button>
+          </div>
+        </form>
+
+        <div class="preview-card">
+          <div class="preview-title" data-i18n="headerPreview">🖼️ معاينة الترويسة</div>
+          <div class="preview-content" id="headerPreview">
+            <div style="color:#94a3b8; font-size:0.9rem;" data-i18n="previewPlaceholder">ابدأ بملء البيانات لرؤية المعاينة</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Form Modal -->
+  <div class="modal-overlay" id="formModal">
+    <div class="modal large">
+      <div class="modal-header">
+        <h2 id="formTitle">➕ إنشاء فاتورة</h2>
+        <button class="close-btn" onclick="closeModal('formModal')">✕</button>
+      </div>
+      <form id="invoiceForm" onsubmit="saveInvoice(event)">
+        <input type="hidden" id="invoiceId">
+        <input type="hidden" id="invoiceType">
+
+        <div class="form-section">
+          <div class="form-section-title">📌 <span data-i18n="sectionInvoice">معلومات الفاتورة</span></div>
+          <div class="form-grid">
+            <div class="form-group"><label data-i18n="invoiceNumber">رقم الفاتورة</label><input type="text" id="invoiceNumber" required></div>
+            <div class="form-group"><label data-i18n="invoiceDate">التاريخ</label><input type="date" id="invoiceDate" required></div>
+            <div class="form-group"><label data-i18n="dueDate">تاريخ الاستحقاق</label><input type="date" id="dueDate"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">👤 <span data-i18n="sectionClient">بيانات العميل</span></div>
+          <div class="form-grid">
+            <div class="form-group"><label data-i18n="clientName">اسم العميل *</label><input type="text" id="clientName" required></div>
+            <div class="form-group"><label data-i18n="clientPhone">الهاتف</label><input type="text" id="clientPhone"></div>
+            <div class="form-group"><label data-i18n="clientEmail">البريد الإلكتروني</label><input type="email" id="clientEmail"></div>
+            <div class="form-group" style="grid-column: 1/-1;"><label data-i18n="clientAddress">العنوان</label><input type="text" id="clientAddress"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">🛒 <span data-i18n="sectionItems">بنود الفاتورة</span></div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th data-i18n="itemDesc">الوصف</th>
+                <th style="width:90px;" data-i18n="itemQty">الكمية</th>
+                <th style="width:120px;" data-i18n="itemPrice">السعر</th>
+                <th style="width:130px;" data-i18n="itemTotal">الإجمالي</th>
+                <th style="width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+          <button type="button" class="btn-primary" style="margin-top:12px;" onclick="addItem()">➕ <span data-i18n="addItem">إضافة بند</span></button>
+
+          <div class="summary-box">
+            <div class="summary-row"><span data-i18n="subtotal">المجموع الفرعي:</span><span id="subtotal">0</span></div>
+            <div class="summary-row">
+              <span style="display:flex; gap:8px; align-items:center;">
+                <span data-i18n="discount">الخصم:</span>
+                <input type="number" id="discount" value="0" min="0" step="0.01" style="width:90px; padding:6px;" oninput="updateSummary()">
+                <select id="discountType" style="width:80px; padding:6px; border:2px solid var(--border); border-radius:8px;" onchange="updateSummary()">
+                  <option value="percent" data-i18n="percent">%</option>
+                  <option value="fixed" data-i18n="fixed">مبلغ</option>
+                </select>
+              </span>
+              <span id="discountAmount">0</span>
+            </div>
+            <div class="summary-row">
+              <span style="display:flex; gap:8px; align-items:center;">
+                <span data-i18n="tax">الضريبة:</span>
+                <input type="number" id="taxRate" value="15" min="0" max="100" step="0.01" style="width:80px; padding:6px;" oninput="updateSummary()">
+                <span>%</span>
+              </span>
+              <span id="taxAmount">0</span>
+            </div>
+            <div class="summary-row total"><span data-i18n="grandTotal">الإجمالي النهائي:</span><span id="grandTotal">0</span></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-group">
+            <label data-i18n="notes">ملاحظات</label>
+            <textarea id="notes" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-primary" style="background:var(--border); color:var(--text);" onclick="closeModal('formModal')" data-i18n="cancel">إلغاء</button>
+          <button type="submit" class="btn-primary">💾 <span data-i18n="save">حفظ</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Invoice Modal -->
+  <div class="modal-overlay" id="viewModal">
+    <div class="modal large">
+      <div class="modal-header">
+        <h2 data-i18n="viewInvoice">عرض الفاتورة</h2>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="icon-btn email" onclick="shareEmail()" title="Email"></button>
+          <button class="icon-btn whatsapp" onclick="shareWhatsApp()" title="WhatsApp">💬</button>
+          <button class="icon-btn pdf" onclick="downloadPDF()" title="PDF">📄</button>
+          <button class="icon-btn view" onclick="printInvoice()" title="Print">🖨️</button>
+          <button class="icon-btn edit" onclick="editFromView()" title="Edit">✏️</button>
+          <button class="icon-btn delete" onclick="deleteFromView()" title="Delete">🗑️</button>
+          <button class="close-btn" onclick="closeModal('viewModal')">✕</button>
+        </div>
+      </div>
+      <div id="viewContent"></div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:450px;">
+      <div class="modal-header">
+        <h2>⚠️ <span data-i18n="confirmDelete">تأكيد الحذف</span></h2>
+        <button class="close-btn" onclick="closeModal('deleteModal')">✕</button>
+      </div>
+      <p style="padding:15px 0;" data-i18n="deleteMessage">هل أنت متأكد من حذف هذه الفاتورة؟</p>
+      <div class="modal-actions">
+        <button class="btn-primary" style="background:var(--border); color:var(--text);" onclick="closeModal('deleteModal')" data-i18n="cancel">إلغاء</button>
+        <button class="btn-primary" style="background:#dc2626;" onclick="confirmDelete()" data-i18n="confirmDeleteBtn">نعم، احذف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Print Area -->
+  <div id="printArea" style="display:none;"></div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
